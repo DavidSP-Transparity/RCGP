@@ -124,8 +124,6 @@ echo "deb [arch=amd64] https://packages.microsoft.com/repos/azure-cli/ $AZ_REPO 
 # add PHP-FPM repository 
 add-apt-repository ppa:ondrej/php -y > /dev/null 2>&1
 
-apt-get -qq -o=Dpkg::Use-Pty=0 update 
-
 # install pre-requisites including VARNISH and PHP-FPM
 export DEBIAN_FRONTEND=noninteractive
 apt-get --yes \
@@ -210,6 +208,7 @@ PhpVer=$(get_php_version)
 # mount NFS export (set up on controller VM)
 echo -e '\n\rMounting NFS export from '$nfsVmName':/moodle on /moodle and adding it to /etc/fstab\n\r'
 configure_nfs_client_and_mount $nfsVmName /moodle /moodle
+wait
 echo -e '\n\rAdded '$nfsVmName':/moodle on /moodle successfully\n\r'
 
 # Configure syslog to forward
@@ -226,7 +225,9 @@ service syslog restart
 # Set up html dir local copy
 mkdir -p /var/www/html/moodle
 rsync -a $htmlRootDir /var/www/html
+wait
 setup_html_local_copy_cron_job
+wait
 
 # Configure Apache/php
 nl=$'\n'
@@ -481,7 +482,7 @@ a2enmod ssl
 # make Apache startup automatically
 systemctl enable apache2
 
-# configure SSL certificates
+# configure SSL
 secretname=$(find /var/lib/waagent -name "kv-shared-secrets-prod*.PEM")
 chmod 644 "$secretname"
 mkdir /etc/apache2/ssl
@@ -489,6 +490,8 @@ cp "$secretname" /etc/apache2/ssl/wildcard_rcgp_org_uk.pem
 
 # setup Moodle mount dependency
 setup_moodle_mount_dependency_for_systemd_service apache2 || exit 1
+
+# restart Apache2
 service apache2 restart
 
 echo "### Script End `date`###"
