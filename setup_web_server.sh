@@ -481,6 +481,12 @@ a2enmod ssl
 # make Apache startup automatically
 systemctl enable apache2
 
+# configure SSL certificates
+secretname=$(find /var/lib/waagent -name "kv-shared-secrets-prod*.PEM")
+chmod 644 "$secretname"
+mkdir /etc/apache2/ssl
+cp "$secretname" /etc/apache2/ssl/wildcard_rcgp_org_uk.pem
+
 # setup Moodle mount dependency
 setup_moodle_mount_dependency_for_systemd_service apache2 || exit 1
 service apache2 restart
