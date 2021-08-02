@@ -84,7 +84,6 @@ EOF
 
 # set variables
 phpVersion="7.2"
-siteFQDN="devole.rcgp.org.uk"
 nfsVmName="controller-vm-u6c66z.internal.cloudapp.net"
 syslogServer="controller-vm-u6c66z.internal.cloudapp.net"
 htmlRootDir="/moodle/html/moodle"
@@ -93,7 +92,7 @@ set -ex
 echo "### Script Start `date`###"
 
 # install azcopy
-wget -q -O azcopy_v10.tar.gz https://aka.ms/downloadazcopy-v10-linux && tar -xf azcopy_v10.tar.gz --strip-components=1 && mv ./azcopy /usr/bin/
+#wget -q -O azcopy_v10.tar.gz https://aka.ms/downloadazcopy-v10-linux && tar -xf azcopy_v10.tar.gz --strip-components=1 && mv ./azcopy /usr/bin/
 
 # kernel settings
 cat <<EOF > /etc/sysctl.d/99-network-performance.conf
@@ -122,15 +121,11 @@ fi
 systemctl enable tuned
 tuned-adm profile throughput-performance
 
-# PHP Version
-PhpVer=$(get_php_version)
-
 # mount NFS export (set up on controller VM)
-echo -e '\n\rMounting NFS export from '$nfsVmName':/moodle on /moodle and adding it to /etc/fstab\n\r'
-configure_nfs_client_and_mount $nfsVmName /moodle /moodle
-wait
-echo -e '\n\rAdded '$nfsVmName':/moodle on /moodle successfully\n\r'
-echo "### Completed mounting of NFS at `date` ###"
+
+#configure_nfs_client_and_mount $nfsVmName /moodle /moodle
+#echo -e '\n\rAdded '$nfsVmName':/moodle on /moodle successfully\n\r'
+#echo "### Completed mounting of NFS at `date` ###"
 
 # Configure syslog to forward
 cat <<EOF >> /etc/rsyslog.conf
@@ -146,6 +141,9 @@ service syslog restart
 # Set up html dir local copy cron job
 setup_html_local_copy_cron_job
 echo "### Html Local Copy Cron Job End `date`###"
+
+# PHP Version
+PhpVer=$(get_php_version)
 
 # php config
 PhpIni=/etc/php/${PhpVer}/apache2/php.ini
