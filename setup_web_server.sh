@@ -1,29 +1,5 @@
 #!/bin/bash
 
-function configure_nfs_client_and_mount_setup {
-    local NFS_HOST_EXPORT_PATH=${1}   # E.g., controller-vm-ab12cd:/moodle
-    local MOUNTPOINT=${2}             # E.g., /moodle
-
-    apt install -y nfs-common
-    mkdir -p ${MOUNTPOINT}
-
-    grep -q -s "^${NFS_HOST_EXPORT_PATH}" /etc/fstab && _RET=$? || _RET=$?
-    if [ $_RET = "0" ]; then
-        echo "${NFS_HOST_EXPORT_PATH} already in /etc/fstab... skipping to add"
-    else
-        echo -e "\n${NFS_HOST_EXPORT_PATH}    ${MOUNTPOINT}    nfs    auto    0    0" >> /etc/fstab
-    fi
-    mount ${MOUNTPOINT}
-}
-
-function configure_nfs_client_and_mount {
-    local NFS_SERVER=${1}     # E.g., controller-vm-ab12cd
-    local NFS_DIR=${2}        # E.g., /moodle or /drbd/data
-    local MOUNTPOINT=${3}     # E.g., /moodle
-
-    configure_nfs_client_and_mount_setup "${NFS_SERVER}:${NFS_DIR}" ${MOUNTPOINT}
-}
-
 function get_php_version {
 # Returns current PHP version, in the form of x.x, eg 7.0 or 7.2
     if [ -z "$_PHPVER" ]; then
@@ -146,9 +122,6 @@ fi
 systemctl enable tuned
 tuned-adm profile throughput-performance
 
-# install apache packages
-#apt-get --yes -qq -o=Dpkg::Use-Pty=0 install libapache2-mod-php$phpVersion
-
 # PHP Version
 PhpVer=$(get_php_version)
 
@@ -170,18 +143,9 @@ local2.*   @${syslogServer}:514
 EOF
 service syslog restart
 
-# Set up html dir local copy
-#mkdir -p /var/www/html/moodle
-#rsync -a $htmlRootDir /var/www/html
-wait
+# Set up html dir local copy cron job
 setup_html_local_copy_cron_job
-
-echo "### Html Local Copy End `date`###"
-
-# Configure Apache/php
-#sed -i 's/Listen 80/Listen 81/' /etc/apache2/ports.conf
-#a2enmod rewrite && a2enmod remoteip && a2enmod headers && a2enmod ssl
-#service apache2 restart
+echo "### Html Local Copy Cron Job End `date`###"
 
 # php config
 PhpIni=/etc/php/${PhpVer}/apache2/php.ini
@@ -421,12 +385,6 @@ EOF
 # restart Varnish
 systemctl daemon-reload
 systemctl restart varnish
-
-# configure SSL certificate
-#secretname=$(find /var/lib/waagent -name "kv-shared-secrets-prod*.PEM")
-#chmod 644 "$secretname"
-#mkdir /etc/apache2/ssl
-#cp "$secretname" /etc/apache2/ssl/wildcard_rcgp_org_uk.pem
 
 # setup Moodle mount dependency
 setup_moodle_mount_dependency_for_systemd_service apache2 || exit 1
