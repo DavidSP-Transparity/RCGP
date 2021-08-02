@@ -479,19 +479,18 @@ EOF
 systemctl daemon-reload
 systemctl restart varnish
 
-# make Apache startup automatically
-systemctl enable apache2
-
 # configure SSL certificate
 secretname=$(find /var/lib/waagent -name "kv-shared-secrets-prod*.PEM")
 chmod 644 "$secretname"
 mkdir /etc/apache2/ssl
 cp "$secretname" /etc/apache2/ssl/wildcard_rcgp_org_uk.pem
+wait
 
 # setup Moodle mount dependency
 setup_moodle_mount_dependency_for_systemd_service apache2 || exit 1
 
-# restart Apache2
+# enable and restart Apache2
+systemctl enable apache2
 service apache2 restart
 
 echo "### Script End `date`###"
