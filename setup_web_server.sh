@@ -169,6 +169,8 @@ php$phpVersion-xml \
 php$phpVersion-bz2 \
 php$phpVersion-sqlite3
 
+echo "### Completed package installation at `date`###"
+
 # install azcopy
 wget -q -O azcopy_v10.tar.gz https://aka.ms/downloadazcopy-v10-linux && tar -xf azcopy_v10.tar.gz --strip-components=1 && mv ./azcopy /usr/bin/
 
@@ -206,10 +208,10 @@ apt-get --yes -qq -o=Dpkg::Use-Pty=0 install libapache2-mod-php$phpVersion
 PhpVer=$(get_php_version)
 
 # mount NFS export (set up on controller VM)
-echo -e '\n\rMounting NFS export from '$nfsVmName':/moodle on /moodle and adding it to /etc/fstab\n\r'
+echo -e '\n\rMounting NFS export from '$nfsVmName':/moodle on /moodle and adding it to /etc/fstab at `date`\n\r'
 configure_nfs_client_and_mount $nfsVmName /moodle /moodle
 wait
-echo -e '\n\rAdded '$nfsVmName':/moodle on /moodle successfully\n\r'
+echo -e '\n\rAdded '$nfsVmName':/moodle on /moodle successfully at `date`\n\r'
 
 # Configure syslog to forward
 cat <<EOF >> /etc/rsyslog.conf
@@ -227,6 +229,8 @@ mkdir -p /var/www/html/moodle
 rsync -a $htmlRootDir /var/www/html
 wait
 setup_html_local_copy_cron_job
+
+echo "### Html Local Copy End `date`###"
 
 # Configure Apache/php
 sed -i 's/Listen 80/Listen 81/' /etc/apache2/ports.conf
