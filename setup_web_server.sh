@@ -202,9 +202,6 @@ tuned-adm profile throughput-performance
 # install apache packages
 apt-get --yes -qq -o=Dpkg::Use-Pty=0 install libapache2-mod-php$phpVersion
 
-# enable SSL on Apache
-a2enmod ssl
-
 # PHP Version
 PhpVer=$(get_php_version)
 
@@ -230,14 +227,12 @@ mkdir -p /var/www/html/moodle
 rsync -a $htmlRootDir /var/www/html
 wait
 setup_html_local_copy_cron_job
-wait
 
 # Configure Apache/php
-nl=$'\n'
-sed -i 's/\Listen 80/'"Listen 443""\\${nl}"'Listen 80/' /etc/apache2/ports.conf
-a2enmod rewrite && a2enmod remoteip && a2enmod headers
+sed -i 's/Listen 80/Listen 81/' /etc/apache2/ports.conf
+a2enmod rewrite && a2enmod remoteip && a2enmod headers && a2enmod ssl
 
-# php config 
+# php config
 PhpIni=/etc/php/${PhpVer}/apache2/php.ini
 sed -i "s/memory_limit.*/memory_limit = 512M/" $PhpIni
 sed -i "s/max_execution_time.*/max_execution_time = 18000/" $PhpIni
