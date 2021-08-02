@@ -381,7 +381,6 @@ if (resp.status == 863) {
 EOF
 
 # restart Varnish
-systemctl daemon-reload
 systemctl restart varnish
 
 # setup Moodle mount dependency
