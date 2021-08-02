@@ -231,6 +231,7 @@ setup_html_local_copy_cron_job
 # Configure Apache/php
 sed -i 's/Listen 80/Listen 81/' /etc/apache2/ports.conf
 a2enmod rewrite && a2enmod remoteip && a2enmod headers && a2enmod ssl
+service apache2 restart
 
 # php config
 PhpIni=/etc/php/${PhpVer}/apache2/php.ini
@@ -477,7 +478,7 @@ systemctl restart varnish
 # make Apache startup automatically
 systemctl enable apache2
 
-# configure SSL
+# configure SSL certificate
 secretname=$(find /var/lib/waagent -name "kv-shared-secrets-prod*.PEM")
 chmod 644 "$secretname"
 mkdir /etc/apache2/ssl
