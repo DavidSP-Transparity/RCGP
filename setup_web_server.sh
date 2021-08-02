@@ -114,62 +114,7 @@ syslogServer="controller-vm-u6c66z.internal.cloudapp.net"
 htmlRootDir="/moodle/html/moodle"
 
 set -ex
-echo "### Function Start `date`###"
-
-# add azure-cli repository
-curl -sL https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor | tee /etc/apt/trusted.gpg.d/microsoft.gpg > /dev/null
-AZ_REPO=$(lsb_release -cs)
-echo "deb [arch=amd64] https://packages.microsoft.com/repos/azure-cli/ $AZ_REPO main" |  tee /etc/apt/sources.list.d/azure-cli.list
-
-# add PHP-FPM repository 
-add-apt-repository ppa:ondrej/php -y > /dev/null 2>&1
-
-# install pre-requisites including VARNISH and PHP-FPM
-export DEBIAN_FRONTEND=noninteractive
-apt-get --yes \
---no-install-recommends \
--qq -o=Dpkg::Use-Pty=0 \
--o Dpkg::Options::="--force-confdef" \
--o Dpkg::Options::="--force-confold" \
-install \
-azure-cli \
-ca-certificates \
-curl \
-apt-transport-https \
-lsb-release gnupg \
-software-properties-common \
-unzip \
-rsyslog \
-postgresql-client \
-mysql-client \
-git \
-unattended-upgrades \
-tuned \
-varnish \
-php$phpVersion \
-php$phpVersion-cli \
-php$phpVersion-curl \
-php$phpVersion-zip \
-php-pear \
-php$phpVersion-mbstring \
-mcrypt \
-php$phpVersion-dev \
-graphviz \
-aspell \
-php$phpVersion-soap \
-php$phpVersion-json \
-php$phpVersion-redis \
-php$phpVersion-bcmath \
-php$phpVersion-gd \
-php$phpVersion-pgsql \
-php$phpVersion-mysql \
-php$phpVersion-xmlrpc \
-php$phpVersion-intl \
-php$phpVersion-xml \
-php$phpVersion-bz2 \
-php$phpVersion-sqlite3
-
-echo "### Completed package installation at `date`###"
+echo "### Script Start `date`###"
 
 # install azcopy
 wget -q -O azcopy_v10.tar.gz https://aka.ms/downloadazcopy-v10-linux && tar -xf azcopy_v10.tar.gz --strip-components=1 && mv ./azcopy /usr/bin/
@@ -202,16 +147,17 @@ systemctl enable tuned
 tuned-adm profile throughput-performance
 
 # install apache packages
-apt-get --yes -qq -o=Dpkg::Use-Pty=0 install libapache2-mod-php$phpVersion
+#apt-get --yes -qq -o=Dpkg::Use-Pty=0 install libapache2-mod-php$phpVersion
 
 # PHP Version
 PhpVer=$(get_php_version)
 
 # mount NFS export (set up on controller VM)
-echo -e '\n\rMounting NFS export from '$nfsVmName':/moodle on /moodle and adding it to /etc/fstab at `date`\n\r'
+echo -e '\n\rMounting NFS export from '$nfsVmName':/moodle on /moodle and adding it to /etc/fstab\n\r'
 configure_nfs_client_and_mount $nfsVmName /moodle /moodle
 wait
-echo -e '\n\rAdded '$nfsVmName':/moodle on /moodle successfully at `date`\n\r'
+echo -e '\n\rAdded '$nfsVmName':/moodle on /moodle successfully\n\r'
+echo "### Completed mounting of NFS at `date` ###"
 
 # Configure syslog to forward
 cat <<EOF >> /etc/rsyslog.conf
@@ -225,17 +171,17 @@ EOF
 service syslog restart
 
 # Set up html dir local copy
-mkdir -p /var/www/html/moodle
-rsync -a $htmlRootDir /var/www/html
+#mkdir -p /var/www/html/moodle
+#rsync -a $htmlRootDir /var/www/html
 wait
 setup_html_local_copy_cron_job
 
 echo "### Html Local Copy End `date`###"
 
 # Configure Apache/php
-sed -i 's/Listen 80/Listen 81/' /etc/apache2/ports.conf
-a2enmod rewrite && a2enmod remoteip && a2enmod headers && a2enmod ssl
-service apache2 restart
+#sed -i 's/Listen 80/Listen 81/' /etc/apache2/ports.conf
+#a2enmod rewrite && a2enmod remoteip && a2enmod headers && a2enmod ssl
+#service apache2 restart
 
 # php config
 PhpIni=/etc/php/${PhpVer}/apache2/php.ini
@@ -252,9 +198,6 @@ sed -i "s/;opcache.enable_file_override.*/opcache.enable_file_override = 0/" $Ph
 sed -i "s/;opcache.enable.*/opcache.enable = 1/" $PhpIni
 sed -i "s/;opcache.memory_consumption.*/opcache.memory_consumption = 512/" $PhpIni
 sed -i "s/;opcache.max_accelerated_files.*/opcache.max_accelerated_files = 20000/" $PhpIni
-
-# Remove the default site. Moodle is the only site we want
-rm -f /etc/apache2/sites-enabled/000-default.conf
 
 # Configure varnish startup for 18.04
 VARNISHSTART="ExecStart=\/usr\/sbin\/varnishd -j unix,user=vcache -F -a :80 -T localhost:6082 -f \/etc\/varnish\/moodle.vcl -S \/etc\/varnish\/secret -s malloc,4096m -p thread_pool_min=1000 -p thread_pool_max=4000 -p thread_pool_add_delay=0.1 -p timeout_linger=10 -p timeout_idle=30 -p send_timeout=1800 -p thread_pools=2 -p http_max_hdr=512 -p workspace_backend=512k"
@@ -480,17 +423,15 @@ systemctl daemon-reload
 systemctl restart varnish
 
 # configure SSL certificate
-secretname=$(find /var/lib/waagent -name "kv-shared-secrets-prod*.PEM")
-chmod 644 "$secretname"
-mkdir /etc/apache2/ssl
-cp "$secretname" /etc/apache2/ssl/wildcard_rcgp_org_uk.pem
-wait
+#secretname=$(find /var/lib/waagent -name "kv-shared-secrets-prod*.PEM")
+#chmod 644 "$secretname"
+#mkdir /etc/apache2/ssl
+#cp "$secretname" /etc/apache2/ssl/wildcard_rcgp_org_uk.pem
 
 # setup Moodle mount dependency
 setup_moodle_mount_dependency_for_systemd_service apache2 || exit 1
 
-# enable and restart Apache2
-systemctl enable apache2
+# restart Apache2
 service apache2 restart
 
 echo "### Script End `date`###"
