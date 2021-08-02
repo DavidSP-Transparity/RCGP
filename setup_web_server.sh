@@ -202,6 +202,9 @@ tuned-adm profile throughput-performance
 # install apache packages
 apt-get --yes -qq -o=Dpkg::Use-Pty=0 install libapache2-mod-php$phpVersion
 
+# enable SSL on Apache
+a2enmod ssl
+
 # PHP Version
 PhpVer=$(get_php_version)
 
@@ -264,7 +267,7 @@ import std;
 import directors;
 backend default {
 .host = "localhost";
-.port = "80";
+.port = "81";
 .first_byte_timeout = 3600s;
 .connect_timeout = 600s;
 .between_bytes_timeout = 600s;
@@ -475,9 +478,6 @@ EOF
 # restart Varnish
 systemctl daemon-reload
 systemctl restart varnish
-
-# enable SSL on Apache
-a2enmod ssl
 
 # make Apache startup automatically
 systemctl enable apache2
