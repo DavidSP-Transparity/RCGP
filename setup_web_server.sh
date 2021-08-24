@@ -31,6 +31,9 @@ EOF
   fi
 }
 
+SERVER_TIMESTAMP_FULLPATH="/moodle/html/moodle/.last_modified_time.moodle_on_azure"
+LOCAL_TIMESTAMP_FULLPATH="/var/www/html/moodle/.last_modified_time.moodle_on_azure"
+
 function setup_html_local_copy_cron_job {
   if [ "$(whoami)" != "root" ]; then
     echo "${0}: Must be run as root!"
