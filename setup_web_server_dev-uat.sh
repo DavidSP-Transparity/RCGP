@@ -35,7 +35,6 @@ EOF
 phpVersion="7.2"
 nfsVmName="controller-vm-u6c66z.internal.cloudapp.net"
 syslogServer="controller-vm-u6c66z.internal.cloudapp.net"
-htmlRootDir="/moodle/html/moodle"
 
 set -ex
 echo "### Script Start `date`###"
