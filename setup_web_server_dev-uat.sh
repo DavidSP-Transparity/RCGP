@@ -33,8 +33,8 @@ EOF
 
 # set variables
 phpVersion="7.2"
-nfsVmName="controller-vm-u6c66z.internal.cloudapp.net"
-syslogServer="controller-vm-u6c66z.internal.cloudapp.net"
+nfsVmName="controller-vm-u6c66z.rcgp-azure.org.uk"
+syslogServer="controller-vm-u6c66z.rcgp-azure.org.uk"
 
 set -ex
 echo "### Script Start `date`###"
