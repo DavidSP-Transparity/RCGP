@@ -33,7 +33,6 @@ EOF
 
 # set variables
 phpVersion="7.2"
-nfsVmName="controller-vm-u6c66z.rcgp-azure.org.uk"
 syslogServer="controller-vm-u6c66z.rcgp-azure.org.uk"
 
 set -ex
@@ -322,6 +321,6 @@ systemctl restart varnish
 setup_moodle_mount_dependency_for_systemd_service apache2 || exit 1
 
 # restart Apache2
-service apache2 restart
+#service apache2 restart
 
 echo "### Script End `date`###"
