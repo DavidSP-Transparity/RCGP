@@ -33,7 +33,7 @@ EOF
 
 # set variables
 phpVersion="7.2"
-syslogServer="controller-vm-u6c66z.rcgp-azure.org.uk"
+syslogServer="controller-vm-u6c66z.rcgp.azure"
 
 set -ex
 echo "### Script Start `date`###"
